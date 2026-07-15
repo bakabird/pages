@@ -303,6 +303,31 @@
         font-weight: 650;
       }
 
+      .market-cap-wrap {
+        display: inline-flex;
+        align-items: center;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .company-reference {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 7px;
+        border-radius: 6px;
+        background: #edf0ec;
+        color: #5f6c63;
+        font-size: 11px;
+        font-weight: 750;
+        white-space: nowrap;
+      }
+
+      .company-reference.a-share {
+        background: #f8eded;
+        color: #9a4b4b;
+      }
+
       .hl-price { color: #166e43; font-size: 16px; font-weight: 820; }
       .muted { color: #859087; font-weight: 500; }
 
@@ -384,7 +409,7 @@
 
       <section class="table-card" aria-labelledby="scenario-title">
         <header class="table-header">
-          <h2 class="table-title" id="scenario-title">2×–10× 情景矩阵</h2>
+          <h2 class="table-title" id="scenario-title">0.5×–10× 情景矩阵</h2>
           <div class="actions">
             <button class="button" type="button" id="reset">恢复默认</button>
             <button class="button" type="button" id="export">导出 CSV</button>
@@ -396,7 +421,7 @@
               <tr>
                 <th scope="col">倍数</th>
                 <th scope="col">CXMT A股价格</th>
-                <th scope="col">市值</th>
+                <th scope="col">市值 / 参考公司</th>
                 <th scope="col">美元市值</th>
                 <th scope="col">美元折算价</th>
                 <th scope="col">全局溢价</th>
@@ -410,7 +435,7 @@
       </section>
 
       <section class="formulas" aria-label="计算公式">
-        <div class="formula" id="matrix-formula"><strong>模式一</strong>情景股价 = 基准 A 股价格 × 2–10 倍</div>
+        <div class="formula" id="matrix-formula"><strong>模式一</strong>情景股价 = 基准 A 股价格 × 0.5、1、2–10 倍</div>
         <div class="formula"><strong>市值计算</strong>A股价格 × 668.8 亿股</div>
         <div class="formula"><strong>HL 对应价</strong>A股价格 ÷ 汇率 ×（1 + 全局溢价）</div>
       </section>
@@ -419,9 +444,43 @@
 
     <script>
       const CXMT_SHARES_YI = 668.8;
-      const MULTIPLES = Array.from({ length: 9 }, (_, index) => index + 2);
+      const MULTIPLES = [0.5, 1, ...Array.from({ length: 9 }, (_, index) => index + 2)];
       const DEFAULT_BASE_PRICE = 8.66;
       const DEFAULT_BASE_MARKET_CAP = DEFAULT_BASE_PRICE * CXMT_SHARES_YI / 10000;
+      const GLOBAL_REFERENCE_SNAPSHOT = "2026-07-15";
+      const GLOBAL_REFERENCE_COMPANIES = [
+        { name: "联发科", usdBillions: 195 },
+        { name: "德州仪器", usdBillions: 283 },
+        { name: "Arm", usdBillions: 345 },
+        { name: "泛林集团", usdBillions: 438 },
+        { name: "应用材料", usdBillions: 478 },
+        { name: "英特尔", usdBillions: 552 },
+        { name: "ASML", usdBillions: 693 },
+        { name: "AMD", usdBillions: 910 },
+        { name: "SK 海力士", usdBillions: 1030 },
+        { name: "美光", usdBillions: 1110 },
+        { name: "三星电子", usdBillions: 1250 },
+        { name: "博通", usdBillions: 1900 },
+        { name: "台积电", usdBillions: 2250 },
+        { name: "微软", usdBillions: 2860 },
+        { name: "苹果", usdBillions: 4620 },
+        { name: "英伟达", usdBillions: 5110 }
+      ];
+      const A_SHARE_REFERENCE_SNAPSHOT = "2026-06-16";
+      const A_SHARE_REFERENCE_COMPANIES = [
+        { name: "中芯国际", cnyTrillions: 0.59, snapshot: "2026-07-15" },
+        { name: "寒武纪", cnyTrillions: 0.88, snapshot: "2026-07-15" },
+        { name: "中国海油", cnyTrillions: 1.49 },
+        { name: "工业富联", cnyTrillions: 1.45 },
+        { name: "贵州茅台", cnyTrillions: 1.57 },
+        { name: "中国石油", cnyTrillions: 1.82 },
+        { name: "宁德时代", cnyTrillions: 1.87 },
+        { name: "中国银行", cnyTrillions: 1.95 },
+        { name: "中国移动", cnyTrillions: 2.02 },
+        { name: "农业银行", cnyTrillions: 2.31 },
+        { name: "工商银行", cnyTrillions: 2.64 },
+        { name: "建设银行", cnyTrillions: 2.66 }
+      ];
 
       let mode = "price";
       let basePrice = DEFAULT_BASE_PRICE;
@@ -444,6 +503,15 @@
         : "—";
 
       const inputNumber = value => Number.isFinite(value) ? String(Number(value.toFixed(7))) : "";
+
+      function findReference(value, companies, valueKey) {
+        if (!Number.isFinite(value) || value <= 0) return null;
+        const nearest = companies.reduce((best, company) => {
+          const difference = Math.abs(value - company[valueKey]) / company[valueKey];
+          return !best || difference < best.difference ? { ...company, difference } : best;
+        }, null);
+        return nearest && nearest.difference <= 0.125 ? nearest : null;
+      }
 
       function scenarios() {
         const base = Number(baseInput.value);
@@ -472,6 +540,8 @@
         body.replaceChildren();
         scenarios().forEach(item => {
           const result = calculate(item);
+          const globalReference = findReference(result.usdMarketCap, GLOBAL_REFERENCE_COMPANIES, "usdBillions");
+          const aShareReference = findReference(result.marketCap, A_SHARE_REFERENCE_COMPANIES, "cnyTrillions");
           const row = document.createElement("tr");
           const actualClass = result.actualPremium < 0 ? "premium-badge discount" : "premium-badge";
           const actualText = Number.isFinite(result.actualPremium)
@@ -480,7 +550,7 @@
           row.innerHTML = `
             <td class="scenario">${result.multiple}×</td>
             <td><span class="metric">¥ ${number(result.price, 2)}</span></td>
-            <td><span class="metric">¥ ${number(result.marketCap, 4)}</span><span class="muted"> 万亿</span></td>
+            <td><span class="market-cap-wrap"><span><span class="metric">¥ ${number(result.marketCap, 4)}</span><span class="muted"> 万亿</span></span>${globalReference ? `<span class="company-reference" title="${globalReference.name} 全球参考市值约 $${number(globalReference.usdBillions, 0)}B；差异 ${number(globalReference.difference * 100, 1)}%；快照 ${GLOBAL_REFERENCE_SNAPSHOT}">${globalReference.name}</span>` : ""}${aShareReference ? `<span class="company-reference a-share" title="${aShareReference.name} A股参考市值约 ¥${number(aShareReference.cnyTrillions, 2)}万亿；差异 ${number(aShareReference.difference * 100, 1)}%；快照 ${aShareReference.snapshot || A_SHARE_REFERENCE_SNAPSHOT}">${aShareReference.name}</span>` : ""}</span></td>
             <td><span class="metric">$ ${number(result.usdMarketCap, 2)}</span><span class="muted"> B</span></td>
             <td><span class="metric">$ ${number(result.usdPrice, 4)}</span></td>
             <td><span class="premium-badge">${number(result.premium, 1)}%</span></td>
@@ -497,8 +567,8 @@
         baseInput.step = isPrice ? "0.01" : "0.0001";
         baseInput.value = inputNumber(isPrice ? basePrice : baseMarketCap);
         matrixFormula.innerHTML = isPrice
-          ? "<strong>模式一</strong>情景股价 = 基准 A 股价格 × 2–10 倍"
-          : "<strong>模式二</strong>情景市值 = 基准市值 × 2–10 倍";
+          ? "<strong>模式一</strong>情景股价 = 基准 A 股价格 × 0.5、1、2–10 倍"
+          : "<strong>模式二</strong>情景市值 = 基准市值 × 0.5、1、2–10 倍";
         modeButtons.forEach(button => {
           const active = button.dataset.mode === mode;
           button.classList.toggle("active", active);
@@ -539,10 +609,12 @@
       });
 
       document.querySelector("#export").addEventListener("click", () => {
-        const rows = [["倍数", "CXMT A股价格(CNY)", "CXMT市值(万亿CNY)", "美元市值(十亿美元)", "美元折算价(USD)", "全局溢价(%)", "HL对应价(USD)", "HL现价实际溢价(%)"]];
+        const rows = [["倍数", "CXMT A股价格(CNY)", "CXMT市值(万亿CNY)", "全球参考公司", "A股参考公司", "美元市值(十亿美元)", "美元折算价(USD)", "全局溢价(%)", "HL对应价(USD)", "HL现价实际溢价(%)"]];
         scenarios().forEach(item => {
           const result = calculate(item);
-          rows.push([result.multiple, result.price, result.marketCap, result.usdMarketCap, result.usdPrice, result.premium, result.target, result.actualPremium]);
+          const globalReference = findReference(result.usdMarketCap, GLOBAL_REFERENCE_COMPANIES, "usdBillions");
+          const aShareReference = findReference(result.marketCap, A_SHARE_REFERENCE_COMPANIES, "cnyTrillions");
+          rows.push([result.multiple, result.price, result.marketCap, globalReference?.name || "", aShareReference?.name || "", result.usdMarketCap, result.usdPrice, result.premium, result.target, result.actualPremium]);
         });
         const csv = "\ufeff" + rows.map(row => row.join(",")).join("\n");
         const link = document.createElement("a");
