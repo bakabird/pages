@@ -146,7 +146,7 @@
 
       .parameters {
         display: grid;
-        grid-template-columns: repeat(4, minmax(150px, 1fr));
+        grid-template-columns: repeat(5, minmax(140px, 1fr));
         gap: 1px;
         overflow: hidden;
         margin-bottom: 16px;
@@ -398,8 +398,12 @@
           <div class="parameter-input"><input id="fx-rate" type="number" value="6.78" min="0.01" step="0.01"><span class="unit">CNY</span></div>
         </div>
         <div class="parameter">
-          <label for="hl-premium">HL 全局溢价比例</label>
-          <div class="parameter-input"><input id="hl-premium" type="number" value="10" step="1"><span class="unit">%</span></div>
+          <label for="hl-premium-a">HL 溢价情景一</label>
+          <div class="parameter-input"><input id="hl-premium-a" type="number" value="10" step="0.1"><span class="unit">%</span></div>
+        </div>
+        <div class="parameter">
+          <label for="hl-premium-b">HL 溢价情景二</label>
+          <div class="parameter-input"><input id="hl-premium-b" type="number" value="20" step="0.1"><span class="unit">%</span></div>
         </div>
         <div class="parameter">
           <label for="hl-current">HL 参考现价（手动）</label>
@@ -424,8 +428,8 @@
                 <th scope="col">市值 / 参考公司</th>
                 <th scope="col">美元市值</th>
                 <th scope="col">美元折算价</th>
-                <th scope="col">全局溢价</th>
-                <th scope="col">HL 对应价</th>
+                <th scope="col" id="premium-a-header">10% HL 溢价</th>
+                <th scope="col" id="premium-b-header">20% HL 溢价</th>
                 <th scope="col">现价实际溢价</th>
               </tr>
             </thead>
@@ -437,7 +441,7 @@
       <section class="formulas" aria-label="计算公式">
         <div class="formula" id="matrix-formula"><strong>模式一</strong>情景股价 = 基准 A 股价格 × 0.5、1、2–10 倍</div>
         <div class="formula"><strong>市值计算</strong>A股价格 × 668.8 亿股</div>
-        <div class="formula"><strong>HL 对应价</strong>A股价格 ÷ 汇率 ×（1 + 全局溢价）</div>
+        <div class="formula"><strong>HL 溢价价格</strong>A股价格 ÷ 汇率 ×（1 + 溢价比例）</div>
       </section>
 
     </main>
@@ -500,9 +504,14 @@
       const baseUnit = document.querySelector("#base-unit");
       const matrixFormula = document.querySelector("#matrix-formula");
       const modeButtons = [...document.querySelectorAll(".mode-button")];
+      const premiumHeaders = {
+        a: document.querySelector("#premium-a-header"),
+        b: document.querySelector("#premium-b-header")
+      };
       const inputs = {
         fx: document.querySelector("#fx-rate"),
-        premium: document.querySelector("#hl-premium"),
+        premiumA: document.querySelector("#hl-premium-a"),
+        premiumB: document.querySelector("#hl-premium-b"),
         current: document.querySelector("#hl-current")
       };
 
@@ -535,16 +544,23 @@
 
       function calculate(item) {
         const fx = Number(inputs.fx.value);
-        const premium = Number(inputs.premium.value);
+        const premiumA = Number(inputs.premiumA.value);
+        const premiumB = Number(inputs.premiumB.value);
         const current = inputs.current.value.trim() === "" ? NaN : Number(inputs.current.value);
         const usdMarketCap = item.marketCap * 1000 / fx;
         const usdPrice = item.price / fx;
-        const target = usdPrice * (1 + premium / 100);
+        const targetA = usdPrice * (1 + premiumA / 100);
+        const targetB = usdPrice * (1 + premiumB / 100);
         const actualPremium = Number.isFinite(current) && usdPrice > 0 ? (current / usdPrice - 1) * 100 : NaN;
-        return { ...item, usdMarketCap, usdPrice, premium, target, actualPremium };
+        return { ...item, usdMarketCap, usdPrice, premiumA, premiumB, targetA, targetB, actualPremium };
       }
 
       function render() {
+        const premiumLabel = value => Number.isFinite(value)
+          ? value.toLocaleString("zh-CN", { maximumFractionDigits: 2 })
+          : "—";
+        premiumHeaders.a.textContent = `${premiumLabel(Number(inputs.premiumA.value))}% HL 溢价`;
+        premiumHeaders.b.textContent = `${premiumLabel(Number(inputs.premiumB.value))}% HL 溢价`;
         body.replaceChildren();
         scenarios().forEach(item => {
           const result = calculate(item);
@@ -553,16 +569,16 @@
           const row = document.createElement("tr");
           const actualClass = result.actualPremium < 0 ? "premium-badge discount" : "premium-badge";
           const actualText = Number.isFinite(result.actualPremium)
-            ? `${result.actualPremium >= 0 ? "+" : ""}${number(result.actualPremium, 1)}%`
+            ? `${result.actualPremium >= 0 ? "+" : ""}${number(result.actualPremium, 2)}%`
             : "—";
           row.innerHTML = `
-            <td class="scenario">${result.multiple}×</td>
+            <td class="scenario">${number(result.multiple, 2)}×</td>
             <td><span class="metric">¥ ${number(result.price, 2)}</span></td>
-            <td><span class="market-cap-wrap"><span><span class="metric">¥ ${number(result.marketCap, 4)}</span><span class="muted"> 万亿</span></span>${globalReference ? `<span class="company-reference" title="${globalReference.name} 全球参考市值约 $${number(globalReference.usdBillions, 0)}B；差异 ${number(globalReference.difference * 100, 1)}%；快照 ${GLOBAL_REFERENCE_SNAPSHOT}">${globalReference.name}</span>` : ""}${aShareReference ? `<span class="company-reference a-share" title="${aShareReference.name} A股参考市值约 ¥${number(aShareReference.cnyTrillions, 2)}万亿；差异 ${number(aShareReference.difference * 100, 1)}%；快照 ${aShareReference.snapshot || A_SHARE_REFERENCE_SNAPSHOT}">${aShareReference.name}</span>` : ""}</span></td>
+            <td><span class="market-cap-wrap"><span><span class="metric">¥ ${number(result.marketCap, 2)}</span><span class="muted"> 万亿</span></span>${globalReference ? `<span class="company-reference" title="${globalReference.name} 全球参考市值约 $${number(globalReference.usdBillions, 0)}B；差异 ${number(globalReference.difference * 100, 2)}%；快照 ${GLOBAL_REFERENCE_SNAPSHOT}">${globalReference.name}</span>` : ""}${aShareReference ? `<span class="company-reference a-share" title="${aShareReference.name} A股参考市值约 ¥${number(aShareReference.cnyTrillions, 2)}万亿；差异 ${number(aShareReference.difference * 100, 2)}%；快照 ${aShareReference.snapshot || A_SHARE_REFERENCE_SNAPSHOT}">${aShareReference.name}</span>` : ""}</span></td>
             <td><span class="metric">$ ${number(result.usdMarketCap, 2)}</span><span class="muted"> B</span></td>
-            <td><span class="metric">$ ${number(result.usdPrice, 4)}</span></td>
-            <td><span class="premium-badge">${number(result.premium, 1)}%</span></td>
-            <td><span class="hl-price">$ ${number(result.target, 4)}</span></td>
+            <td><span class="metric">$ ${number(result.usdPrice, 2)}</span></td>
+            <td><span class="hl-price">$ ${number(result.targetA, 2)}</span></td>
+            <td><span class="hl-price">$ ${number(result.targetB, 2)}</span></td>
             <td><span class="${actualClass}">${actualText}</span></td>`;
           body.append(row);
         });
@@ -611,18 +627,21 @@
         basePrice = DEFAULT_BASE_PRICE;
         baseMarketCap = DEFAULT_BASE_MARKET_CAP;
         inputs.fx.value = 6.78;
-        inputs.premium.value = 10;
+        inputs.premiumA.value = 10;
+        inputs.premiumB.value = 20;
         inputs.current.value = "";
         updateModeUi();
       });
 
       document.querySelector("#export").addEventListener("click", () => {
-        const rows = [["倍数", "CXMT A股价格(CNY)", "CXMT市值(万亿CNY)", "全球参考公司", "A股参考公司", "美元市值(十亿美元)", "美元折算价(USD)", "全局溢价(%)", "HL对应价(USD)", "HL现价实际溢价(%)"]];
+        const premiumA = Number(inputs.premiumA.value);
+        const premiumB = Number(inputs.premiumB.value);
+        const rows = [["倍数", "CXMT A股价格(CNY)", "CXMT市值(万亿CNY)", "全球参考公司", "A股参考公司", "美元市值(十亿美元)", "美元折算价(USD)", `${premiumA}% HL溢价(USD)`, `${premiumB}% HL溢价(USD)`, "HL现价实际溢价(%)"]];
         scenarios().forEach(item => {
           const result = calculate(item);
           const globalReference = findReference(result.usdMarketCap, GLOBAL_REFERENCE_COMPANIES, "usdBillions");
           const aShareReference = findReference(result.marketCap, A_SHARE_REFERENCE_COMPANIES, "cnyTrillions");
-          rows.push([result.multiple, result.price, result.marketCap, globalReference?.name || "", aShareReference?.name || "", result.usdMarketCap, result.usdPrice, result.premium, result.target, result.actualPremium]);
+          rows.push([result.multiple.toFixed(2), result.price.toFixed(2), result.marketCap.toFixed(2), globalReference?.name || "", aShareReference?.name || "", result.usdMarketCap.toFixed(2), result.usdPrice.toFixed(2), result.targetA.toFixed(2), result.targetB.toFixed(2), Number.isFinite(result.actualPremium) ? result.actualPremium.toFixed(2) : ""]);
         });
         const csv = "\ufeff" + rows.map(row => row.join(",")).join("\n");
         const link = document.createElement("a");
