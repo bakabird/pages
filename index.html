@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="独立静态页面集合">
+    <title>Pages</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #f5f7fb;
+        color: #172033;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        background:
+          radial-gradient(circle at 10% 0%, rgb(82 113 255 / 12%), transparent 32rem),
+          #f5f7fb;
+      }
+
+      main {
+        width: min(68rem, calc(100% - 2rem));
+        margin: 0 auto;
+        padding: clamp(4rem, 10vw, 8rem) 0;
+      }
+
+      header {
+        max-width: 42rem;
+        margin-bottom: 3rem;
+      }
+
+      .eyebrow {
+        margin: 0 0 0.75rem;
+        color: #5267d8;
+        font-size: 0.78rem;
+        font-weight: 750;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(2.75rem, 8vw, 5.5rem);
+        line-height: 0.95;
+        letter-spacing: -0.06em;
+      }
+
+      .intro {
+        margin: 1.25rem 0 0;
+        color: #5f6b82;
+        font-size: clamp(1rem, 2vw, 1.15rem);
+        line-height: 1.7;
+      }
+
+      .pages {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(18rem, 100%), 1fr));
+        gap: 1rem;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .page-card {
+        position: relative;
+        display: block;
+        min-height: 13rem;
+        padding: 1.5rem;
+        overflow: hidden;
+        border: 1px solid rgb(23 32 51 / 10%);
+        border-radius: 1.25rem;
+        background: rgb(255 255 255 / 78%);
+        color: inherit;
+        text-decoration: none;
+        box-shadow: 0 1.25rem 3rem rgb(29 42 76 / 8%);
+        transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+      }
+
+      .page-card::after {
+        content: "\2197";
+        position: absolute;
+        right: 1.5rem;
+        bottom: 1.25rem;
+        color: #5267d8;
+        font-size: 1.5rem;
+      }
+
+      .page-card:hover {
+        transform: translateY(-0.25rem);
+        border-color: rgb(82 103 216 / 38%);
+        box-shadow: 0 1.5rem 3.5rem rgb(29 42 76 / 13%);
+      }
+
+      .page-card:focus-visible {
+        outline: 3px solid #5267d8;
+        outline-offset: 4px;
+      }
+
+      .number {
+        display: block;
+        margin-bottom: 3rem;
+        color: #7a86a0;
+        font: 650 0.75rem/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+        letter-spacing: 0.08em;
+      }
+
+      h2 {
+        margin: 0;
+        font-size: 1.4rem;
+        letter-spacing: -0.025em;
+      }
+
+      .description {
+        margin: 0.5rem 2.5rem 0 0;
+        color: #68748c;
+        line-height: 1.55;
+      }
+
+      footer {
+        margin-top: 3rem;
+        color: #8993a7;
+        font-size: 0.8rem;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          background: #0d1220;
+          color: #f1f4fb;
+        }
+
+        body {
+          background:
+            radial-gradient(circle at 10% 0%, rgb(90 117 255 / 20%), transparent 32rem),
+            #0d1220;
+        }
+
+        .eyebrow,
+        .page-card::after {
+          color: #9aaaff;
+        }
+
+        .intro,
+        .description {
+          color: #a8b1c5;
+        }
+
+        .page-card {
+          border-color: rgb(255 255 255 / 10%);
+          background: rgb(23 30 48 / 78%);
+          box-shadow: 0 1.25rem 3rem rgb(0 0 0 / 20%);
+        }
+
+        .page-card:hover {
+          border-color: rgb(154 170 255 / 42%);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .page-card {
+          transition: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <p class="eyebrow">Static page collection</p>
+        <h1>Pages</h1>
+        <p class="intro">这里收录彼此独立的静态页面。选择一个页面开始浏览。</p>
+      </header>
+
+      <nav aria-label="页面列表">
+        <ul class="pages">
+          <li>
+            <a class="page-card" href="./helloworld/helloworld.html">
+              <span class="number">PAGE 001</span>
+              <h2>Hello World</h2>
+              <p class="description">第一个静态页面，用于验证 GitHub Pages 发布流程。</p>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <footer>持续更新中</footer>
+    </main>
+  </body>
+</html>
