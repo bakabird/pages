@@ -38,7 +38,7 @@ content:
         required: true
         options:
           time: true
-          format: yyyy-MM-dd'T'HH:mm:ssXXX
+          format: yyyy-MM-dd'T'HH:mm:ss
       - name: summary
         label: 摘要
         type: text
@@ -74,7 +74,7 @@ content:
         required: true
         options:
           time: true
-          format: yyyy-MM-dd'T'HH:mm:ssXXX
+          format: yyyy-MM-dd'T'HH:mm:ss
       - name: tags
         label: 标签
         type: string

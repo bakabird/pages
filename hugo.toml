@@ -3,6 +3,8 @@ locale = "zh-CN"
 defaultContentLanguage = "zh-cn"
 title = "YANG"
 enableRobotsTXT = true
+# Pages CMS stores local wall-clock timestamps without an offset.
+timeZone = "Asia/Tokyo"
 
 [pagination]
   pagerSize = 12
