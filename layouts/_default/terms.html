@@ -1,0 +1,14 @@
+{{ define "main" }}
+  <header class="section-intro">
+    <p class="eyebrow">TOPICS</p>
+    <h1>{{ .Title }}</h1>
+    <p>按主题浏览文章和短文。</p>
+  </header>
+  <div class="term-cloud" aria-label="标签列表">
+    {{ range .Data.Terms.Alphabetical }}
+      <a href="{{ .Page.RelPermalink }}">#{{ .Page.LinkTitle }} <span>{{ .Count }}</span></a>
+    {{ else }}
+      <div class="empty-state"><p>发布内容并添加标签后，它们会显示在这里。</p></div>
+    {{ end }}
+  </div>
+{{ end }}

@@ -1,0 +1,27 @@
+{{ define "main" }}
+  <header class="section-intro">
+    <p class="eyebrow">CHRONOLOGY</p>
+    <h1>{{ .Title }}</h1>
+    <p>{{ .Description }}</p>
+  </header>
+  {{ $pages := where site.RegularPages "Section" "in" (slice "posts" "notes") }}
+  {{ $pages = where $pages "Draft" false }}
+  <section class="archive-list">
+    {{ range $pages.GroupByDate "2006年01月" }}
+      <section class="archive-group">
+        <h2>{{ .Key }}</h2>
+        <ul>
+          {{ range .Pages.ByDate.Reverse }}
+            <li>
+              <time datetime="{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}">{{ .Date.Format "01-02 15:04" }}</time>
+              <span class="archive-kind">{{ if eq .Section "notes" }}短文{{ else }}文章{{ end }}</span>
+              <a href="{{ .RelPermalink }}">{{ if eq .Section "notes" }}{{ .Summary | plainify | truncate 58 }}{{ else }}{{ .LinkTitle }}{{ end }}</a>
+            </li>
+          {{ end }}
+        </ul>
+      </section>
+    {{ else }}
+      <div class="empty-state"><p>公开内容会按月份归档在这里。</p></div>
+    {{ end }}
+  </section>
+{{ end }}

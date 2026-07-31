@@ -1,0 +1,28 @@
+baseURL = "https://bakabird.github.io/pages/"
+locale = "zh-CN"
+defaultContentLanguage = "zh-cn"
+title = "YANG"
+enableRobotsTXT = true
+
+[pagination]
+  pagerSize = 12
+
+[permalinks]
+  posts = "/posts/:year/:month/:slug/"
+  notes = "/notes/:year/:month/:slugorcontentbasename/"
+
+[taxonomies]
+  tag = "tags"
+  category = "categories"
+
+[params]
+  description = "文章、短文与研究工具。"
+
+[caches]
+  [caches.images]
+    dir = ":cacheDir/images"
+
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = false

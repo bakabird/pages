@@ -1,0 +1,25 @@
+{{ define "main" }}
+  <section class="home-intro">
+    <p class="eyebrow">WRITING &amp; NOTES</p>
+    <h1>记录正在发生的事。</h1>
+    <p>长文、短文和研究工具在同一个地方，但各自保持合适的阅读方式。</p>
+  </section>
+
+  {{ $entries := where site.RegularPages "Section" "in" (slice "posts" "notes") }}
+  {{ $entries = where $entries "Draft" false }}
+  {{ $paginator := .Paginate ($entries.ByDate.Reverse) }}
+  <section class="timeline" aria-label="最新内容">
+    {{ range $paginator.Pages }}
+      {{ if eq .Section "notes" }}
+        {{ partial "note-card.html" . }}
+      {{ else }}
+        {{ partial "post-card.html" . }}
+      {{ end }}
+    {{ else }}
+      <div class="empty-state">
+        <p>还没有公开内容。可以在 Pages CMS 的“文章”或“短文”中开始发布。</p>
+      </div>
+    {{ end }}
+  </section>
+  {{ partial "pagination.html" . }}
+{{ end }}

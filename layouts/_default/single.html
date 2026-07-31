@@ -1,0 +1,12 @@
+{{ define "main" }}
+  <article class="article {{ if eq .Section "notes" }}article--note{{ end }}">
+    <header class="article-header">
+      {{ if ne .Section "notes" }}<p class="eyebrow">文章</p><h1>{{ .Title }}</h1>{{ else }}<p class="eyebrow">短文</p>{{ end }}
+      <time datetime="{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}">{{ .Date.Format "2006-01-02 15:04" }}</time>
+      {{ with .GetTerms "tags" }}
+        <div class="tag-list" aria-label="标签">{{ range . }}<a href="{{ .RelPermalink }}">#{{ .LinkTitle }}</a>{{ end }}</div>
+      {{ end }}
+    </header>
+    <div class="prose">{{ .Content }}</div>
+  </article>
+{{ end }}

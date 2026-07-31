@@ -1,0 +1,10 @@
+<article class="timeline-entry timeline-entry--note">
+  <div class="entry-date"><time datetime="{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}">{{ .Date.Format "2006-01-02 15:04" }}</time></div>
+  <div class="note-content">{{ .Content }}</div>
+  {{ with .GetTerms "tags" }}
+    <div class="tag-list" aria-label="标签">
+      {{ range . }}<a href="{{ .RelPermalink }}">#{{ .LinkTitle }}</a>{{ end }}
+    </div>
+  {{ end }}
+  <a class="entry-permalink" href="{{ .RelPermalink }}" aria-label="短文永久链接">#</a>
+</article>

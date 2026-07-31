@@ -1,0 +1,12 @@
+{{ define "main" }}
+  <header class="section-intro">
+    <p class="eyebrow">LONGFORM</p>
+    <h1>{{ .Title }}</h1>
+    <p>{{ .Description }}</p>
+  </header>
+  {{ $paginator := .Paginate (.RegularPages.ByDate.Reverse) }}
+  <section class="timeline" aria-label="文章列表">
+    {{ range $paginator.Pages }}{{ partial "post-card.html" . }}{{ else }}<div class="empty-state"><p>文章会在这里出现。</p></div>{{ end }}
+  </section>
+  {{ partial "pagination.html" . }}
+{{ end }}
