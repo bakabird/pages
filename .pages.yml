@@ -19,6 +19,8 @@ content:
     type: collection
     path: content/posts
     format: yaml-frontmatter
+    exclude:
+      - _index.md
     filename: "{year}-{month}-{day}-{title}.md"
     view:
       fields: [title, date, draft]
@@ -59,6 +61,8 @@ content:
     type: collection
     path: content/notes
     format: yaml-frontmatter
+    exclude:
+      - _index.md
     filename: "{year}-{month}-{day}-{hour}{minute}{second}.md"
     view:
       fields: [date, tags, draft]
